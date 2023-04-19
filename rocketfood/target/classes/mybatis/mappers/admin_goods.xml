@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.admin.goods">
+
+	<insert id="insertNewGoods" parameterType="java.util.Map"  >
+		<selectKey resultType="String" keyProperty="goods_id" order="BEFORE">
+	    	select nvl(max(goods_id), 0) + 1 from goods
+	    </selectKey>
+	    
+	    <![CDATA[
+		   insert into goods(
+						goods_id, 
+		                goods_name,
+		                goods_status,
+						goods_price,
+						stock_quantity,
+						thumbnail_url,
+						short_description,
+						goods_description,
+						category_id,
+						business_name						
+					)
+					values(
+					  	#{goods_id},
+					  	#{goods_name},
+					  	#{goods_status},
+					  	#{goods_price},
+					  	#{stock_quantity},
+					  	#{thumbnail_url},
+					  	#{short_description},
+					  	#{goods_description},
+					  	#{category_id},
+					  	#{business_name}
+					)
+		]]>
+	</insert> 
+		<insert id="insertGoodsImageFile" parameterType="imageFileVO">
+		<selectKey resultType="int" keyProperty="image_id" order="BEFORE">
+	    	select nvl(max(image_id), 0) + 1 from goods_image
+	    </selectKey>
+	    <![CDATA[
+		   insert into goods_image (
+		   				image_id,
+		                goods_id,
+						fileName,
+						imageFileType
+					)
+					values(
+						{image_id},
+						{goods_id},
+						{fileName},
+						{imageFileType}
+					)
+		]]>
+	</insert> 
+	<select id="selectNewGoodsList" resultType="goodsVO" parameterType="java.util.Map"  >
+	    <![CDATA[
+	     select * from (
+		 select @rownum := @rownum + 1 as recNum, 
+        			  t_tbl.goods_id,
+			          t_tbl.goods_name,
+			          t_tbl.business_name,
+			          t_tbl.goods_price,
+			          date_format(t_tbl.created_date,'%Y-%m-%d')  as goods_entered_date
+        	from 
+        		( select goods_id, goods_name, business_name, goods_price, date_format(created_date,'%Y-%m-%d') as created_date from goods
+					where date_format(created_date,'%Y-%m-%d') BETWEEN #{beginDate} AND #{endDate} ) as t_tbl, 
+				(select @rownum := 0) as rowcolumn
+			order by created_date desc ) t
+			where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10
+    	]]>
+	</select>
+	
+	<select id="selectOrderGoodsList" resultType="orderVO"   parameterType="java.util.Map"  >
+		  select * from (
+			    select @rownum := @rownum + 1 as recNum ,t.*
+			       from (
+			              select  *  from orders 
+			              where date_format(pay_order_time,'%Y-%m-%d') between #{beginDate} and #{endDate}
+			                <if test="search_type=='order_id'">
+			                  AND member_id=#{member_id}
+			                </if>
+			                <if test="search_type=='orderer_name'">
+			                  AND orderer_name=#{search_word}
+			                </if>
+			                <if test="search_type=='orderer_phone'">
+			                   AND orderer_phone=#{search_word} 
+			                </if>
+			              order by PAY_ORDER_TIME desc
+					    ) t
+				)							
+			where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10				        
+	</select>
+	
+	<select id="selectGoodsDetail" resultType="goodsVO"  parameterType="String"  >
+	    <![CDATA[
+		    select g.*, to_char(g.created_date,'YYYY-MM-DD') as created_date, d.fileName from goods g, goods_image d
+	        where g.goods_id=d.goods_id
+	        and d.imageFileType='main_image'
+	        and g.goods_id=#{goods_id}
+	        order by g.goods_id
+    	]]>
+	</select>
+	<select id="selectGoodsImageFileList" resultType="imageFileVO" parameterType="String"  >
+	    <![CDATA[
+		    	select * from  goods_image 
+		    	where  
+			    goods_id=#{goods_id}
+			    order by image_id asc
+    	]]>
+	</select>	
+	
+	
+<update id="updateGoodsInfo" parameterType="java.util.HashMap" >
+	   update goods
+	    <set> 
+	      <if test=" goods_sort!='' and goods_sort!=null">
+	        category_id=#{category_id},
+	      </if>
+	      <if test=" goods_name!='' and goods_name!=null">
+	        goods_name=#{goods_name},
+	      </if>
+	      <if test=" goods_status!='' and goods_status!=null">
+	        goods_status=#{goods_status},
+	      </if>
+	      <if test=" stock_quantity!='' and stock_quantity!=null">
+	        stock_quantity=#{stock_quantity},
+	      </if>
+	      <if test=" thumbnail_url!='' and thumbnail_url!=null">
+	        thumbnail_url=#{thumbnail_url},
+	      </if>
+	      <if test=" short_description!='' and short_description!=null">
+	        short_description=#{short_description},
+	      </if>
+	      <if test=" goods_price!='' and goods_price!=null">
+	        goods_description=#{goods_description},
+	      </if>
+	      <if test=" goods_price!='' and goods_price!=null">
+	        goods_price=#{goods_price},
+	      </if>
+	      <if test=" sales_count!='' and sales_count!=null">
+	        sales_count=#{sales_count},
+	      </if>
+	      <if test=" wish_count!='' and wish_count!=null">
+	        wish_count=#{wish_count},
+	      </if>
+	      <if test=" business_name!='' and business_name!=null">
+	        business_name=#{business_name},
+	      </if>	     
+	     </set>
+	    where goods_id=#{goods_id}
+	
+	</update>	
+	<update id="updateGoodsImage" parameterType="imageFileVO">
+		update goods_image
+		set fileName=#{fileName}
+		where goods_id=#{goods_id} and image_id=#{image_id}
+	</update>
+	
+	<delete id="deleteGoodsImage" parameterType="String">
+	  delete from goods_image
+	  where image_id=#{image_id}
+	</delete>
+	
+<update id="updateOrderGoods" parameterType="java.util.HashMap" >
+	   update orders
+	    <set> 
+	      <if test=" order_status!='' and order_status!=null">
+	        order_status=#{order_status},
+	      </if>
+	      <if test=" address_id!='' and address_id!=null">
+	        address_id=#{address_id},
+	      </if>
+	    </set>
+	    where order_id=#{order_id}
+	</update>		
+</mapper>
+

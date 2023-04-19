@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+	<definition name="sideLayout"	template="/WEB-INF/views/common/sideLayout.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/common/header.jsp" />
+		<put-attribute name="title" value="레이아웃 페이지" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="side" value="/WEB-INF/views/common/side.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/common/footer.jsp" />
+		<put-attribute name="quickMenu" value="/WEB-INF/views/common/quickMenu.jsp" />
+	</definition>
+	
+    <definition name="/mypage/myPageMain" extends="sideLayout">
+       <put-attribute name="title" value="마이페이지 메인" />
+       <put-attribute name="body" value="/WEB-INF/views/mypage/myPageMain.jsp" />
+    </definition>
+    
+    <definition name="/mypage/myOrderDetail" extends="sideLayout">
+       <put-attribute name="title" value="내 주문 상세 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/mypage/myOrderDetail.jsp" />
+     </definition>
+     
+      <definition name="/mypage/listMyOrderHistory" extends="sideLayout">
+       <put-attribute name="title" value="내 주문 상세 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/mypage/listMyOrderHistory.jsp" />
+     </definition>
+     
+     <definition name="/mypage/myDetailInfo" extends="sideLayout">
+       <put-attribute name="title" value="내 정보 상세 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/mypage/myDetailInfo.jsp" />
+     </definition>
+</tiles-definitions>
+
+

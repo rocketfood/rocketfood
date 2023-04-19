@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.goods">
+
+	<resultMap id="goodsResult" type="goodsVO">
+		<result property="goods_id" column="goods_id" />
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_status" column="goods_status" />
+		<result property="stock_quantity" column="stock_quantity" />
+		<result property="thumbnail_url" column="thumbnail_url" />
+		<result property="short_description" column="short_description" />		
+		<result property="goods_description" column="goods_description" />
+		<result property="modified_date" column="modified_date" />
+		<result property="created_date" column="created_date" />
+		<result property="category_id" column="category_id" />
+		<result property="goods_price" column="goods_price" />
+		<result property="sales_price" column="sales_price" />
+		<result property="sales_count" column="sales_count" />
+		<result property="wish_count" column="wish_count" />		
+		<result property="business_name" column="business_name" />
+		<result property="goods_fileName" column="fileName" />		
+	</resultMap>	
+
+	<resultMap id="imageResult" type="ImageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="goods_id" column="goods_id" />
+	    <result property="fileName" column="fileName" />
+	    <result property="imageFileType" column="imageFileType" />
+	    <result property="created_date" column="created_date" />	   
+	</resultMap>
+	
+	<!--2차 카테고리로 상품 불러오기 - 소팅에 따라 정렬 변경 -->
+	<select id="selectGoodsListByCategory" parameterType="java.util.Map" resultMap="goodsResult"   >
+        <![CDATA[
+		select t.*
+          from(
+			select g.*,d.fileName from goods as g, goods_image as d
+        	where g.goods_id=d.goods_id 
+        	and d.imageFileType='main_image'
+        	and g.category_id=#{category_id}
+       	order by 
+       	 ]]>
+       			<choose>
+       				<when test="goods_sort == 'price_asc'">g.goods_price asc</when>
+       				<when test="goods_sort == 'price_desc' ">g.goods_price desc</when>
+       				<when test="goods_sort == 'sales_count' ">g.sales_count desc</when>
+       				<when test="goods_sort == 'wish_count' ">g.wish_count desc</when>
+       				<otherwise>g.created_date desc</otherwise>
+       			</choose>
+       	<![CDATA[		
+       	) as t
+		where rowNum() <16
+	   ]]>
+	</select>
+	
+	<!-- 2차 카테고리 아이디를 리스트로 받아와서 해당 상품 리스트 불러오기 : 1차 카테고리로 하위 카테고리 상품 모두 불러오기 -->
+	<select id="selectGoodsBy2depthList" resultMap="goodsResult" parameterType="categoryVO">
+      <![CDATA[
+          select g.* , d.fileName
+          from goods g, goods_image d
+          where g.goods_id = d.goods_id
+          and d.imageFileType ='main_image' 
+          and g.category_id in
+      ]]>      	 
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item.category_id}
+		</foreach>
+
+		order by g.goods_id desc
+	</select>
+	
+	<!-- 메인 - 상태별로 상품 불러오기 -->
+	<select id="selectGoodsListByStatus" parameterType="String" resultMap="goodsResult">
+		<![CDATA[
+			select t.*
+          		from(
+					select g.*,d.fileName from goods as g, goods_image as d
+        			where g.goods_id=d.goods_id 
+        			and d.imageFileType='main_image'
+        			and g.goods_status=#{goods_status} 
+        			order by g.created_date desc
+        		) as t 
+		]]>
+	</select>	
+	
+	<!-- 상품 상세 정보 불러오기 -->
+	<select id="selectGoodsDetail" resultMap="goodsResult"   parameterType="String"  >
+	    <![CDATA[
+		     select goods.*, goods_image.fileName from goods , goods_image
+			where goods.goods_id=goods_image.goods_id
+			and goods_image.imageFileType='main_image'
+			and goods.goods_id=#{goods_id}
+			order by goods.goods_id
+    	]]>
+	</select>
+	
+	<!-- 상품 상세 이미지 불러오기 -->
+	<select id="selectGoodsDetailImage" resultMap="imageResult"   parameterType="String"  >
+	    <![CDATA[
+		    	select * from  goods_image 
+		    	where imageFileType!='main_image'
+				and goods_id=#{goods_id}
+    	]]>
+	</select>
+	
+	<!-- 검색어로 상품 불러오기 -->
+   <select id="selectGoodsBySearchWord" resultMap="goodsResult" parameterType="String"  >
+     <![CDATA[
+		select goods.*, goods_image.fileName from goods, goods_image
+		where goods.goods_id=goods_image.goods_id
+		and goods_image.imageFileType='main_image'
+		and goods.goods_name like concat('%',#{searchWord},'%')
+		order by goods.created_date desc
+		]]>
+	</select>	
+	
+	<!-- 검색어로 상품명 불러오기 -->
+	<select id="selectKeywordSearch" resultType="String" parameterType="String"  >
+	    <![CDATA[
+        select goods_name from goods 
+        goods_name like  concat('%',#{keyword},'%')
+        order by created_date desc
+		]]>
+	</select>
+	
+
+</mapper> 

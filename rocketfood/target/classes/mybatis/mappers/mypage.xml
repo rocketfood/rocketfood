@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.mypage">
+	<!-- ***** 주문 관련 쿼리 ***** -->
+	<!-- 내가 주문한 상품 리스트 불러오기 -->
+	<select id="selectMyOrderGoodsList" resultType="orderGoodsVO" parameterType="int">
+	<![CDATA[
+		select * from order_goods
+		where order_id = #{order_id}
+		order by created_date desc
+	]]>
+	</select>
+	
+	<!-- 주문 상세 불러오기 -->
+	<select id="selectMyOrderInfo" resultType="orderVO" parameterType="int">
+	<![CDATA[
+		select * from orders
+        where order_id = #{order_id}
+    ]]>
+	</select>
+	
+	<!--  주문 내역 불러오기 -->
+	<select id="selectMyOrderHistoryList" resultType="orderVO" parameterType="java.util.Map">
+	<![CDATA[       
+        select * from (
+			select @rownum := @rownum + 1 as recNum, t_tbl.*
+        		from 
+        			(select * from orders where date_format(created_date,'%Y-%m-%d') BETWEEN NOW() AND #{endDate} and member_id = #{member_id}) as t_tbl, 
+        			(select @rownum := 0) as rowcolumn
+			order by created_date desc) t
+		where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10
+   	]]>
+	</select>	
+	
+	<!-- 주문 상태 변경 -->
+	<update id="updateMyOrderCancel" parameterType="OrderVO">
+		update orders
+	 	set order_status = #{order_status}
+	    where order_id = #{order_id}
+	</update>
+	
+	
+	<!-- ***** 회원 정보 관련 쿼리 ***** -->
+	<!-- 회원 정보 불러오기 -->
+	<select id="selectMyDetailInfo" resultType="memberVO"   parameterType="String">
+	<![CDATA[
+		select * from member 
+		where member_id = #{member_id}
+    ]]>
+	</select>	
+	
+	<!-- 회원 정보 수정 -->
+	<update id="updateMyInfo" parameterType="java.util.HashMap">
+		update member
+		<set>
+			<if test="member_pw!='' and member_pw!=null">
+			member_pw = #{member_pw},
+			</if>
+			<if test="member_birth !='' and member_birth !=null">
+			member_birth = #{member_birth},
+			</if>
+			<if test="member_email !='' and member_email !=null">
+			member_email = #{member_email},
+			</if>
+			<if test="member_birth !='' and member_birth !=null">
+			member_birth = #{member_birth},
+			</if>
+			<if test="manager_name !='' and manager_name !=null">
+			manager_name = #{manager_name},
+			</if>
+			<if test="manager_phone !='' and manager_phone !=null">
+			manager_phone = #{manager_phone},
+			</if>
+			<if test="manager_email !='' and manager_email !=null">
+			manager_email = #{manager_email},
+			</if>
+			modified_date = current_timestamp()
+		</set>
+		where member_id = #{member_id}
+	</update>
+	
+	<!-- 회원 탈퇴하기 -->
+	<delete id="deleteMemberById" parameterType="String">
+	   delete member
+	   where member_id = #{member_id}
+	</delete>	
+	
+	
+	
+	<!-- ***** 포인트 관련 쿼리 ***** -->
+	<!-- 아이디로 회원 포인트 조회 -->
+	<select id="selectPoint" parameterType="String" resultType="java.util.Map">
+	<![CDATA[
+		SELECT ifnull(SUM(current_point),0) as usable_point, SUM(if(DATEDIFF(now(), point.point_expiration) < 30, point.current_point,0)) as expirable_point, point.* FROM point
+		WHERE member_id = #{member_id}
+		GROUP BY member_id
+	]]>
+	</select>	
+	
+	<!-- 업데이트 회원 포인트 -->
+	<insert id="updatePoint" parameterType="pointVO">
+	<![CDATA[
+		INSERT point(point_detail, current_point, point_expiration, member_id) VALUES(#{point_detail}, #{current_point}, DATE_ADD(now(),INTERVAL 3 month) , #{member_id})
+	]]>
+	</insert>
+	
+	<!-- ***** 쿠폰 관련 쿼리 ***** -->
+	<!-- 내 쿠폰 목록 불러오기 -->
+	<select id="selectMyUsableCoupon" parameterType="String" resultType="couponVO">
+	<![CDATA[
+		SELECT c.* FROM coupon c, member_coupon mc
+		WHERE c.coupon_id = mc.coupon_id
+		AND mc.member_id = #{member_id}
+		AND mc.coupon_use = 'n' 
+	]]>
+	</select>
+	
+	<!-- 쿠폰 등록하기 -->
+	<insert id="downloadCoupon" parameterType="myCouponVO">
+	<![CDATA[
+		INSERT member_coupon(coupon_id, member_id, coupon_expire, coupon_use) VALUES(#{coupon_id}, #{member_id}, #{coupon_expire} , #{coupon_use})
+	]]>
+	</insert>
+	
+	<!-- ***** 상품 관련 게시판 쿼리 ***** -->
+	<!-- 아이디로 상품 문의글 조회 -->
+	<select id="selectMyArticle" parameterType="String" resultType="java.util.Map">
+	<![CDATA[		
+		select * from (
+			select @rownum := @rownum + 1 as recNum, t_tbl.*
+        		from 
+        			(select * from goods_qna where date_format(created_date,'%Y-%m-%d') BETWEEN NOW() AND #{endDate} and member_id = #{member_id}) as t_tbl, 
+        			(select @rownum := 0) as rowcolumn
+			order by created_date desc) t
+		where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10
+	]]>
+	</select>	
+	
+	<!--후기 작성 가능한 상품 목록 불러오기 -->
+	<select id="reviewWritableGoodsList" parameterType="String" resultType="java.util.Map">
+	<![CDATA[
+		SELECT order_info.* FROM 
+			(SELECT order_goods.* FROM orders, order_goods WHERE orders.member_id = #{member_id} AND orders.order_id = order_goods.order_id) AS order_info,
+			(SELECT og.* FROM order_goods og LEFT OUTER JOIN goods_review gr ON og.goods_id = gr.goods_id WHERE gr.goods_id IS NULL) AS review_info
+		WHERE order_info.order_goods_id = review_info.order_goods_id;
+	]]>	
+	</select>
+	
+	<!-- 작성한 상품 후기 목록 불러오기 -->
+	<select id="selectMyReivewList" parameterType="java.util.Map" resultType="java.util.Map">
+	<![CDATA[
+		select * from (
+			select @rownum := @rownum + 1 as recNum, t_tbl.*
+        		from 
+        			(select * from goods_review where date_format(created_date,'%Y-%m-%d') BETWEEN NOW() AND #{endDate} and member_id = #{member_id}) as t_tbl, 
+        			(select @rownum := 0) as rowcolumn
+			order by created_date desc) t
+		where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10
+	]]>	
+	</select>
+	
+	<!-- 내가 작성한 상품 관련 글 삭제 -->
+	<delete id="deleteMyArticle" parameterType="java.util.Map">
+	<![CDATA[
+		DELETE FROM #{board_name} WHERE article_id = #{article_id}
+    ]]>
+	</delete>
+	
+	<!-- 상품 메인 이미지 불러오기 -->
+	<select id="selectGoodsImageFile" parameterType="int" resultType="imageFileVo" >
+	<![CDATA[
+		select * from goods_image where goods_id=#{goods_id} and imageFileType='main_image' order by image_id asc
+    ]]>	
+	</select>
+	
+	
+	<!-- ***** 찜 관련 쿼리 ***** -->	
+	<!-- wish에서 member_id로 cart_id 가져오기 -->
+	<select id="selectWishId" parameterType="String" resultType="int">
+	<![CDATA[
+		select wish_id from wish where member_id = #{member_id}
+	]]>
+	</select>
+
+	<!-- wish에서 member_id가 이미 있는지 -->
+	<select id="selectCountInWish" parameterType="String" resultType="String">
+	<![CDATA[
+		SELECT CASE count(*)
+			WHEN 1 THEN 'true'
+			ELSE 'false'
+			END
+		FROM wish
+		WHERE member_id=#{member_id}
+	]]>
+	</select>
+
+	<!-- wishGoods에 상품이 이미 있는지 -->
+	<select id="selectCountInWishGoods" parameterType="wishGoodsVO" resultType="String">
+	<![CDATA[
+	    SELECT CASE count(*)
+       		WHEN 1 THEN 'true'
+    		ELSE 'false'
+    		END
+		FROM wish_goods
+		WHERE wish_id = #{wish_id} and goods_id = #{goods_id}
+    ]]>
+	</select>
+
+	<!-- wish에 member_id 담기 -->
+	<insert id="insertMemberIdInWish" parameterType="String">
+	<![CDATA[
+	   	insert into wish(member_id)
+	   	values(#{member_id})
+    ]]>
+	</insert>
+
+	<!-- wishGoods에 상품 담기 -->
+	<insert id="insertGoodsInWishGoods" parameterType="wishGoodsVO">
+	<![CDATA[
+		insert into wish_goods(wish_id, goods_id)
+		values(#{wish_id}, #{goods_id})
+	]]>
+	</insert>
+</mapper>

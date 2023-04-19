@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/spring/rocketfood=UTF-8
+encoding//src/main/java/com/spring/rocketfood/goods/controller/GoodsControllerImpl.java=UTF-8
+encoding//src/main/webapp/WEB-INF/config/mail/mail.properties=UTF-8
+encoding//src/main/webapp/WEB-INF/views/member/loginForm.jsp=UTF-8

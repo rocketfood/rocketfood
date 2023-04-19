@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.security">
+	<!-- 리절트 맵 정의 -->	
+	<resultMap id="memberResult" type="memberVO">
+		<result property="member_id" column="member_id" />
+		<result property="member_pw" column="member_pw" />
+		<result property="member_name" column="member_name" />
+		<result property="member_email" column="member_email" />
+		<result property="member_phone" column="member_phone" />
+		<result property="member_birth" column="member_birth" />		
+		<result property="point_id" column="point_id" />
+		<result property="grade_id" column="grade_id" />
+		<result property="created_date" column="created_date" />
+		<result property="modified_date" column="modified_date" />
+		
+		<result property="business_name" column="business_name" />
+		<result property="business_regNum" column="business_regNum" />
+		<result property="business_category" column="business_category" />
+		<result property="manager_name" column="manager_name" />
+		<result property="manager_phone" column="manager_phone" />
+		<result property="manager_email" column="manager_email" />
+	</resultMap>	
+	
+	<select id="selectUser" resultType="memberVO" parameterType="String">
+		SELECT member_id, member_pw, enabled FROM member WHERE member_id=#{member_id}
+	</select>
+	
+	<select id="getAuthList" resultType="String">
+		SELECT AUTHORITY FROM member_auth WHERE member_id=#{member_id}
+	</select>
+</mapper>

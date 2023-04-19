@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.admin.category">
+<resultMap id="cateResult" type="CategoryVO">
+		<result property="category_id" column="category_id" />
+		<result property="category_name" column="member_id" />
+		<result property="parent_id" column="parent_id" />
+	</resultMap>
+
+	<!-- 모든 카테고리 불러오기 -->
+	<select id="selectAllCategory" resultMap="cateResult"  parameterType="java.util.HashMap"  >
+		<![CDATA[
+			select * from category 
+			where parent_id is not null
+			order by category_id asc
+		]]>
+	</select>
+	
+	<!-- 1차 분류로 2차 카테고리까지 불러오기 -->
+	<select id="selectCategory2depth" resultType="categoryVO"  parameterType="int"  >
+			SELECT c2.category_id 
+			FROM category AS c1 INNER JOIN category AS c2 
+			ON c1.category_id = c2.parent_id 
+			WHERE c2.parent_id = #{parent_id}		
+	</select>
+	
+	<!-- 2차 분류 카테고리만 불러오기 -->
+	<select id="selectCategoryByParent" resultMap="cateResult"  parameterType="int"  >
+		<![CDATA[
+			select * from category
+			where parent_id = #{parent_id}
+		]]>
+	</select>
+	
+	<select id="selectCategoryById" resultType="CategoryVO"  parameterType="int"  >
+		<![CDATA[
+			select * from category
+			where category_id = #{category_id}
+		]]>
+	</select>
+	
+	<!-- 1차 카테고리 수 불러오기 -->
+	<select id="countCategory" resultType="int">
+		<![CDATA[
+			SELECT COUNT(category_id) FROM category WHERE parent_id = 0 GROUP BY parent_id;
+		]]>
+	</select>
+	
+	
+	<!-- 카테고리 관리 -->
+	<insert id="insertNewCategory" parameterType="CategoryVO">
+		<![CDATA[
+			insert into category(category_name, parent_id) values(#{category_name}, ${parent_id})
+		]]>
+	</insert>
+	
+	<update id="updateCategory" parameterType="CategoryVO">
+		<![CDATA[
+			update category
+			set category_name = #{category_name}
+			where category_id = #{category_id}
+		]]>
+	</update>
+	
+	<delete id="deleteCategory" parameterType="int">
+		<![CDATA[
+			delete category	where category_id = #{category_id}
+		]]>
+	</delete>
+</mapper>
+

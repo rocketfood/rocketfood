@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd"> 
+<tiles-definitions>
+    <definition name="/chat/openChatRoom" extends="bodyLayout">
+       <put-attribute name="title" value="채팅" />
+       <put-attribute name="body" value="/WEB-INF/views/chat/chat.jsp" />
+    </definition>
+    
+     <definition name="/chat/chatRoomList" extends="bodyLayout">
+       <put-attribute name="title" value="채팅" />
+       <put-attribute name="body" value="/WEB-INF/views/chat/chatRoomList.jsp" />
+    </definition>
+    
+    <definition name="/chat/replychat" extends="bodyLayout">
+       <put-attribute name="title" value="답변" />
+       <put-attribute name="body" value="/WEB-INF/views/chat/replyChat.jsp" />
+    </definition>
+</tiles-definitions>
+
+

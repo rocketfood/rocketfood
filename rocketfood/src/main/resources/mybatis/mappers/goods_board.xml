@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.goodsBoard">
+	<!-- 상품 문의 리스트 불러오기 -->	
+	<select id="selectAllQnaList" resultType="goodsQnaVO" parameterType="int" >
+    <![CDATA[
+            SELECT * FROM goods_qna
+			WHERE goods_id = #{goods_id}           
+    ]]>
+	</select>
+	
+	<!-- 상품 문의 추가하기 -->	
+	<insert id="insertNewQna"  parameterType="java.util.Map">
+	<![CDATA[
+	INSERT into goods_qna(title, 
+						  content, 
+						  member_id,
+						  goods_id,
+						  secret
+					) VALUES(#{title},	
+							 #{content}, 
+							 #{member_id},
+							 #{goods_id},
+							 #{secret}
+				    )
+	]]>      
+	</insert>
+	
+	<!-- 상품 문의 수정하기 -->	
+	<update id="updateQnaArticle"  parameterType="java.util.Map">
+	<![CDATA[
+	update goods_qna
+	set title = #{title},
+		content = #{content},
+		modified_date = CUDATE()
+	where article_id = #{article_id}
+	]]>      
+	</update>	
+	
+	<!-- 상품 문의 답변달기 -->	
+	<update id="updateQnaReply"  parameterType="java.util.Map">
+	<![CDATA[
+	update goods_qna
+	set reply = #{reply},
+		reply_content = #{reply_content},
+		replyed_date = CUDATE()
+	where article_id = #{article_id}
+	]]>      
+	</update>
+	
+	<!-- 상품게시글 아이디 생성하기 -->	
+	<select id="selectNewArticleId" resultType="int" parameterType="String" >
+	<![CDATA[
+		SELECT ifnull(max(article_id), 0)+1 from #{board_name}	
+	]]>
+	</select>
+  
+  	<!-- 상품 후기 리스트 불러오기 -->	
+	<select id="selectAllReviewList" parameterType="java.util.Map" resultType="java.util.Map">
+	<![CDATA[
+  		SELECT gr.*, m.member_name, m.member_id, mg.grade_name 
+  		FROM goods_review as gr, member_grade as mg, member as m
+  		WHERE gr.member_id = m.member_id
+  		and m.grade_id = mg.grade_id
+  		and gr.goods_id = #{goods_id}
+  	]]>
+	</select>
+	
+	<!-- 상품 후기 도움돼요 불러오기 -->	
+	<select id="selectMyReviewHelp" parameterType="int" resultType="goodsReviewVO">
+	<![CDATA[
+  		SELECT gh.*
+  		FROM goods_review as gr, goods_review_help as gh
+  		WHERE gr.article_id = gh.article_id
+  		and gh.member_id = #{member_id}
+  		and gr.goods_id = #{goods_id}
+  		and gh.help_y = 'y'
+  	]]>
+	</select>
+
+	<!-- 상품 후기 추가하기 -->	
+	<insert id="insertNewReview" parameterType="java.util.Map">
+	<![CDATA[
+		INSERT INTO goods_review(article_id, title, description, star, goods_id, member_id) 
+		VALUES(#{article_id}, #{title}, #{description}, #{star}, #{goods_id}, #{member_id})
+	]]>
+	</insert>
+  
+  	<!-- 상품 후기 헬프 카운트 수정하기 -->	
+  	<update id="updateHelpCount" parameterType="goodsReviewVO">
+  	<![CDATA[
+		UPDATE goods_review
+		SET help_count = #{help_count}
+		WHERE article_id = #{article_id}
+	]]>
+  	</update>
+  	
+  	<!-- 도움돼요 추가하기 -->	
+  	<insert id="insertMyHelp" parameterType="reviewHelpVO">
+  	<![CDATA[
+		INSERT goods_review_help(article_id, member_id, help_y) VALUES(#{article_id}, #{member_id}, #{help_y})
+	]]>
+  	</insert>
+  	
+  	<!-- 도움돼요 수정하기 -->	
+  	<delete id="deleteMyHelp" parameterType="reviewHelpVO">
+  	<![CDATA[
+		DELETE FROM goods_review_help
+		WHERE article_id = #{article_id}
+		AND member_id = #{member_id}
+	]]>
+  	</delete>
+  	
+</mapper>

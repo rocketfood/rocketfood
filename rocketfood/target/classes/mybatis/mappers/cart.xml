@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.cart">
+	<!-- 리절트 맵 정의 -->
+	<resultMap id="cartGoodsResult" type="cartGoodsVO">
+		<result property="cart_goods_id" column="cart_goods_id" />
+		<result property="count" column="count" />
+	    <result property="cart_id" column="cart_id" />
+	    <result property="goods_id" column="goods_id" />
+	    <result property="created_date" column="created_date" />	   
+	</resultMap>
+	<resultMap id="goodsResult" type="goodsVO">
+		<result property="goods_id" column="goods_id" />
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_status" column="goods_status" />
+		<result property="stock_quantity" column="stock_quantity" />
+		<result property="thumbnail_url" column="thumbnail_url" />
+		<result property="short_description" column="short_description" />		
+		<result property="goods_description" column="goods_description" />
+		<result property="modified_date" column="modified_date" />
+		<result property="created_date" column="created_date" />
+		<result property="category_id" column="category_id" />
+		<result property="goods_price" column="goods_price" />
+		<result property="sales_price" column="sales_price" />
+		<result property="sales_count" column="sales_count" />
+		<result property="wish_count" column="wish_count" />		
+		<result property="business_name" column="business_name" />
+		<result property="goods_fileName" column="fileName" />	
+		<result property="count" column="count" />	
+	</resultMap>	
+
+	<resultMap id="imageResult" type="ImageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="goods_id" column="goods_id" />
+	    <result property="fileName" column="fileName" />
+	    <result property="imageFileType" column="imageFileType" />
+	    <result property="created_date" column="created_date" />	   
+	</resultMap>
+	
+	
+	<!-- 회원에게 배정된 장바구니가 있는지 확인  -->
+	<select id="selectCartByMemberId" parameterType="String" resultType="int">
+		<![CDATA[	
+		select cart_id from cart
+		where member_id=#{member_id}
+		]]>
+	</select>
+	
+	<!-- 회원 아이디와 카트아이디가 세션에 저장된 회원 정보와 일치하는지 확인용  -->
+	<select id="selectCart" parameterType="int" resultType="cartVO">
+		<![CDATA[	
+		select * from cart
+		where cart_id = #{cart_id}
+		]]>
+	</select>
+	
+	
+	<!-- 장바구니 정보 불러오기 -->
+	<select id="selectCartList" parameterType="cartVO" resultMap="cartGoodsResult"   >
+	    <![CDATA[			
+			select cg.*
+			from cart c , cart_goods cg
+			where c.cart_id = cg.cart_id 
+			and c.member_id = #{member_id}
+			order by cg.created_date desc
+		]]>
+	</select>
+
+	<!-- 장바구니 정보로 해당 상품 정보를 불러오기 -->
+	<select id="selectGoodsList" resultMap="goodsResult" parameterType="CartGoodsVO">
+      <![CDATA[
+          select g.* , d.fileName, c.count
+          from goods g, goods_image d, cart_goods c
+          where g.goods_id=d.goods_id
+          and g.goods_id = c.goods_id
+          and d.imageFileType='main_image' 
+          and g.goods_id in
+      ]]>      	 
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item.goods_id}
+		</foreach>
+
+		order by g.goods_id desc
+	</select>
+
+	<!-- 회원의 장바구니에 해당 상품이 있는지 중복 검사-->
+	<select id="selectCountInCart" resultType="String" parameterType="java.util.Map">
+	    <![CDATA[
+		    select CASE count(*)
+         		WHEN 1 THEN 'true'
+         		ELSE 'false'
+       		END
+			FROM cart as c , cart_goods as cg
+			WHERE c.cart_id = cg.cart_id 
+			and  c.member_id = #{member_id} 
+			and cg.goods_id = #{goods_id}
+    	]]>
+	</select>
+
+	<!-- 장바구니에 상품 추가 -->
+	<insert id="insertGoodsInCart" parameterType="cartGoodsVO">
+	    <![CDATA[
+		    	insert into cart_goods (
+		    				cart_goods_id,  
+		    				count, 
+		    				cart_id, 
+		    				goods_id
+		    	        )
+		        		values(
+		        			#{cart_goods_id},
+    						#{count},
+    						#{cart_id},
+    						#{goods_id})
+    	]]>
+	</insert>
+
+	<!-- 장바구니 상품 수량 변경 -->
+	<update id="updateCartGoodsQty" parameterType="cartGoodsVO">
+	    <![CDATA[
+			update cart_goods
+			       set count = #{count}
+		 	       where cart_id = #{cart_id}
+			       and goods_id = #{goods_id}
+    	]]>
+	</update>
+	
+	<!-- 장바구니 상품 삭제 -->
+	<delete id="deleteCartGoods" parameterType="java.util.Map">
+	    <![CDATA[
+	      delete from cart_goods
+	      where cart_id = #{cart_id}
+	      and goods_id = #{goods_id}
+    	]]>
+	</delete>
+	
+	<select id="selectMaxCartId" resultType="int">
+	    <![CDATA[
+			select nvl(max(cart_id), 0) + 1 from cart 
+    	]]>
+	</select>
+
+</mapper>

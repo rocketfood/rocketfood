@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.chat">
+ 
+ 	<!-- 회원 아이디로 채팅방 참여 여부 확인 -->
+	<select id="countChatRoomById"  resultType="int">
+	<![CDATA[
+    	SELECT COUNT(*)
+    	FROM chat_room
+    	WHERE questioner = #{member_id}
+    ]]>
+	</select>
+	
+	<!-- 답변 완료한 모든 채팅방 불러오기 -->
+	<select id="selectAllChatRoomByStatus"  resultType="chatRoomVO" parameterType="java.util.Map">
+	<![CDATA[
+    	select * from (
+			select @rownum := @rownum + 1 as recNum, 
+        			  cr.*,
+			          date_format(cr.created_date,'%Y-%m-%d')  as date
+        	from 
+        		( select * from chat_room where chat_status = #{chat_status}) as cr, (select @rownum := 0) as rowcolumn
+			order by created_date desc ) tbl
+			where recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10
+    ]]>
+	</select>
+	
+	<!--가장 최근 메시지 불러오기 -->
+	<select id="selectLastestChatMessageList"  resultType="String" parameterType="String">
+	<![CDATA[
+    	select cm.message from chat_msg as cm, chat_room as cr
+    	where cr.chat_room_id = cm.chat_room_id
+    	order by cm.created_date limit 1
+    ]]>
+	</select>
+	
+	<!-- 답변 대기 중인 채팅방 수 불러오기  -->
+	<select id="selectWaitngChatCount" resultType="int">
+	<![CDATA[
+		SELECT COUNT(*) FROM chat_room WHERE chat_status = 'n';
+	]]>
+	</select>
+	
+	<!-- 답변 대기 중인 채팅방에서 관리자가 읽지않은 채팅 수 불러오기  -->
+	<select id="selectWaitngChatMsgCount" resultType="int" parameterType="int">
+	<![CDATA[
+		SELECT COUNT(message) FROM chat_msg 
+		WHERE msg_id > (SELECT nvl(MAX(msg_id), 0) FROM chat_msg WHERE answerer = 'admin')
+		and chat_room_id = #{chat_room_id}
+	]]>
+	</select>
+	
+	<!-- 회원 아이디로 채팅방 불러오기 -->
+	<select id="selectChatRoomByMemberId" resultType="chatRoomVO" parameterType="String">
+	<![CDATA[
+		select * from chat_room
+		WHERE questioner = #{member_id}
+	]]>
+	</select>
+	
+	<!-- 채팅방 아이디로 채팅방 불러오기 -->
+	<select id="selectChatRoom" resultType="chatRoomVO" parameterType="int">
+	<![CDATA[
+		select * from chat_room
+		WHERE chat_room_id = #{chat_room_id}
+	]]>
+	</select>
+	
+	<!-- 채팅방 참여 -->
+	<insert id="insertChatRoom" parameterType="chatRoomVO">
+	<![CDATA[
+    	INSERT INTO chat_room(questioner) VALUES(#{questioner})
+    ]]>
+	</insert>
+ 
+ 	<!-- 채팅방 아이디로 채팅 메시지 불러오기 -->
+	<select id="selectAllChatMessage" resultType="chatMessageVO" parameterType="int">
+	<![CDATA[
+		select * from chat_msg WHERE chat_room_id = #{chat_room_id}
+	]]>
+	</select>
+ 
+ 	<!-- 메세지 저장 -->
+	<insert id="insertChatMessage" parameterType="chatMessageVO">
+	<![CDATA[
+    	INSERT INTO chat_msg(chat_room_id, questioner, answerer, message) VALUES(#{chat_room_id}, #{questioner}, #{answerer}, #{message})	
+    ]]>	
+	</insert>
+	
+	<!-- 채팅방 상태 변경 -->
+	<update id="updateChatRoomStatus" parameterType="chatRoomVO">
+	<![CDATA[
+	update chat_room
+	set chat_status = #{chat_status}, modified_date = current_timestamp()
+	where chat_room_id = #{chat_room_id}
+	]]>	
+	</update>
+ </mapper>

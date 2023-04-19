@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.order">
+<!-- 리절트 맵 정의 -->	
+	
+	
+	 <select id="selectMyOrderList" resultType="orderVO"  parameterType="orderVO"  >
+	    <![CDATA[
+			select * from (
+                  	select order_t.* , goods_t.goods_delivery_price from t_shopping_goods goods_t , t_shopping_order order_t where goods_t.goods_id = order_t.goods_id 
+                 ) as b
+			where  member_id=#{member_id}
+        	order by pay_order_time desc
+		]]>
+	</select>
+	
+	<!--새 주문 추가 -->
+	<insert id="insertNewOrder" parameterType="orderVO"  >
+	    <![CDATA[
+			insert into orders(order_id,
+								order_status,
+								cart_id,
+								address_id,
+								member_id,
+								orderer_name,
+								orderer_phone,
+								receiver_name,
+								receiver_phone,
+								pay_method,
+								card_com_name,
+								card_pay_month,
+								pay_orderer_hp,
+								pay_order_time,
+								final_total_price,
+								order_qty,
+								thumbnail_url
+							)values(#{order_id},
+							            #{order_status},
+									    #{cart_id},
+									    #{address_id},
+									    #{member_id},
+									    #{orderer_name},
+									    #{orderer_phone},
+									    #{receiver_name},
+									    #{receiver_phone},
+									    #{pay_method},
+					                    #{card_com_name},
+					                    #{card_pay_month},
+					                    #{pay_orderer_hp},
+					                    #{pay_order_time},
+					                    #{final_total_price},
+					                    #{order_qty},
+					                    #{thumbnail_url}
+					         )
+    	]]>
+	</insert>
+
+	<insert id="insertOrderGoods" parameterType="java.util.Map">
+		<![CDATA[
+		insert into order_goods(order_id,
+								goods_id,
+								count
+							) values (
+								#{order_id},
+								#{goods_id},
+								#{count}
+							)
+		]]>
+	</insert>
+
+   	<select id="selectOrderID" resultType="int"  >
+	    <![CDATA[
+		    select nvl(max(order_id), 0) + 1 from orders
+    	]]>
+	</select>
+	
+	<select id="selectMyOrder" resultType="orderVO"   parameterType="String"  >
+	    <![CDATA[
+		    select * from t_shopping_order
+            where to_char(pay_order_time,'yyyy-mm-dd')=to_char(sysdate,'yyyy-mm-dd') 
+            and order_id=#{order_id}
+            order by pay_order_time desc
+    	]]>
+	</select>
+	
+	<delete id="deleteGoodsFromCart" parameterType="java.util.Map">
+	  <![CDATA[
+	  	delete from cart_goods
+	  	where goods_id=#{goods_id} and cart_id=#{cart_id}
+	  ]]>
+	</delete>
+	
+</mapper>

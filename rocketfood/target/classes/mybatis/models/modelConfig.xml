@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration 	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+  <typeAliases>
+    <typeAlias type="com.spring.rocketfood.goods.vo.GoodsVO" alias="goodsVO" />
+    <typeAlias type="com.spring.rocketfood.goods.vo.ImageFileVO" alias="imageFileVO" />
+    <typeAlias type="com.spring.rocketfood.goods.board.vo.GoodsQnaVO" alias="goodsQnaVO" />
+    <typeAlias type="com.spring.rocketfood.goods.board.vo.GoodsReviewVO" alias="goodsReviewVO" />
+    <typeAlias type="com.spring.rocketfood.goods.board.vo.ReviewHelpVO" alias="reviewHelpVO" />
+    <typeAlias type="com.spring.rocketfood.cart.vo.CartVO" alias="cartVO" />
+    <typeAlias type="com.spring.rocketfood.cart.vo.CartGoodsVO" alias="cartGoodsVO" />
+    <typeAlias type="com.spring.rocketfood.mypage.wish.vo.WishVO" alias="wishVO" />
+    <typeAlias type="com.spring.rocketfood.mypage.wish.vo.WishGoodsVO" alias="wishGoodsVO" />
+    <typeAlias type="com.spring.rocketfood.mypage.coupon.vo.CouponVO" alias="couponVO" />
+    <typeAlias type="com.spring.rocketfood.mypage.coupon.vo.MyCouponVO" alias="myCouponVO" />
+    <typeAlias type="com.spring.rocketfood.order.vo.OrderVO" alias="orderVO" />
+    <typeAlias type="com.spring.rocketfood.order.vo.OrderGoodsVO" alias="orderGoodsVO" />
+    <typeAlias type="com.spring.rocketfood.member.vo.MemberVO" alias="memberVO" />
+    <typeAlias type="com.spring.rocketfood.member.vo.AddressVO" alias="addressVO" />
+    <typeAlias type="com.spring.rocketfood.member.vo.PointVO" alias="pointVO" />
+    <typeAlias type="com.spring.rocketfood.member.vo.GradeVO" alias="gradeVO" />
+    <typeAlias type="com.spring.rocketfood.member.vo.AuthVO" alias="authVO" />
+    <typeAlias type="com.spring.rocketfood.member.security.UserDetailsDTO" alias="userDetails" />
+    <typeAlias type="com.spring.rocketfood.admin.category.vo.CategoryVO" alias="CategoryVO" />
+    <typeAlias type="com.spring.rocketfood.chat.vo.ChatRoomVO" alias="chatRoomVO" />
+    <typeAlias type="com.spring.rocketfood.chat.vo.ChatMessageVO" alias="chatMessageVO" />
+    
+  </typeAliases>
+</configuration>
+
+
+
